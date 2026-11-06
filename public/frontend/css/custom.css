@@ -1,0 +1,45 @@
+/* Custom Styles */
+.lang-switcher {
+    margin-bottom: 20px;
+    font-size: 14px;
+}
+
+.lang-switcher .lang-link {
+    color: #fff;
+    transition: all 0.3s ease;
+}
+
+.lang-switcher .lang-link.active,
+.lang-switcher .lang-link:hover {
+    color: #aa8453;
+    font-weight: bold;
+}
+
+.lang-switcher .lang-link.en-link {
+    margin-right: 10px;
+}
+
+.lang-switcher .lang-link.tr-link {
+    margin-left: 10px;
+}
+
+.lang-switcher .lang-separator {
+    color: #666;
+}
+
+
+/* Fix for Select2 box expanding height on long words like No Children */
+.select1_inner .select2-container--default .select2-selection--single {
+    height: 62px !important;
+    overflow: hidden !important;
+}
+.select1_inner .select2-container--default .select2-selection--single .select2-selection__rendered {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    padding-right: 25px !important;
+    padding-left: 15px !important;
+    font-size: 14px !important;
+}
+
+

@@ -1,0 +1,63 @@
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+
+@theme {
+    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+}
+
+/* Improve editor usability in Filament forms */
+.filament-form .fi-fo-rich-editor {
+    min-height: 320px;
+    width: 100%;
+}
+
+.filament-form .fi-fo-rich-editor .ProseMirror {
+    min-height: 320px;
+    padding: 0.75rem 1rem;
+    overflow: visible;
+}
+
+.filament-form .fi-fo-rich-editor .fi-input-wrp {
+    align-items: stretch;
+}
+
+.filament-form .fi-fo-rich-editor .fi-input-wrp > div {
+    width: 100%;
+}
+
+.filament-form .fi-fo-rich-editor .ProseMirror p,
+.filament-form .fi-fo-rich-editor .ProseMirror span,
+.filament-form .fi-fo-rich-editor .ProseMirror strong,
+.filament-form .fi-fo-rich-editor .ProseMirror em {
+    color: inherit;
+}
+
+.filament-form .fi-fo-rich-editor .fi-color-picker,
+.filament-form .fi-fo-rich-editor [data-color-picker],
+.filament-form .fi-fo-rich-editor .fi-dropdown-panel,
+.filament-form .fi-fo-rich-editor .fi-popover {
+    overflow: visible;
+    max-height: none;
+}
+
+.filament-form .fi-fo-rich-editor .fi-dropdown-panel,
+.filament-form .fi-fo-rich-editor .fi-popover {
+    position: static;
+}
+
+/* Restore normal page scrolling in the admin editor shell */
+html {
+    overflow: auto !important;
+    overflow-x: auto !important;
+    overflow-y: auto !important;
+}
+
+body {
+    overflow: visible !important;
+    min-height: 100%;
+}
