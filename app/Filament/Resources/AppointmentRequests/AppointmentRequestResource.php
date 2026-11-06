@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\AppointmentRequests;
 
+use App\Filament\Resources\AppointmentRequests\Pages\AppointmentCalendar;
 use App\Filament\Resources\AppointmentRequests\Pages\CreateAppointmentRequest;
 use App\Filament\Resources\AppointmentRequests\Pages\EditAppointmentRequest;
 use App\Filament\Resources\AppointmentRequests\Pages\ListAppointmentRequests;
@@ -52,6 +53,7 @@ class AppointmentRequestResource extends BaseResource
         return [
             'index' => ListAppointmentRequests::route('/'),
             'create' => CreateAppointmentRequest::route('/create'),
+            'calendar' => AppointmentCalendar::route('/calendar'),
             'edit' => EditAppointmentRequest::route('/{record}/edit'),
         ];
     }

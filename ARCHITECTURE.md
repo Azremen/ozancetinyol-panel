@@ -122,11 +122,72 @@ The frontend validates and stores pending requests; the panel manages them in
 the shared `appointment_requests` table. Its schema is defined in
 `database/migrations/2026_11_02_000001_create_appointment_requests_table.php`.
 
-Records use a ULID primary key, name, phone, nullable preferred date and note,
+Records use a ULID primary key, name, phone, nullable email, preferred date/time,
+confirmed duration in minutes and note,
 nullable `privacy_consent_at`, a two-character locale, indexed status, and
 timestamps. The appointment models in both applications share fillable fields
 and casts. Update both sides when modifying this contract; do not turn a
 request into a confirmed booking implicitly.
+
+`2026_11_06_000001_add_appointment_scheduling.php` adds scheduling fields, the
+shared transaction-lock row and the durable `appointment_notifications` outbox.
+New public requests require email, date and time. Existing rows are retained;
+legacy confirmations need an email and time before rescheduling. A legacy
+confirmation without a time blocks its date until repaired.
+
+Admin/Developer-only `AppointmentSettings` controls seven weekly day schedules,
+15-180 minute slot duration and closed dates. No working days are assumed:
+configure them before accepting requests. The appointment resource calendar
+uses existing `BaseResource` authorization. Only confirmed, non-deleted
+appointments block time, and original confirmed durations protect against
+overlaps even when the configured duration changes.
+
+Both public submissions and panel confirmations serialize through
+`appointment_schedule_locks` inside a transaction. The panel revalidates time,
+email and overlapping bookings before confirmation/restoration/rescheduling.
+The model keeps persistence and outbox writes atomic for every instance save;
+stale scheduling state is rejected under the lock instead of overwriting a
+newer confirmation. Domain validation uses unprefixed field names; only
+Filament create/edit pages adapt errors to `data.*` form state.
+Confirmed duration is not mass assignable. Restoration and email corrections
+retain the original duration and validate the entire interval, not just the
+current grid's first slot. Date/time rescheduling uses the current configured
+duration. Confirmation and date/time/email changes create customer/admin
+notifications in the same transaction; unrelated edits do not resend them.
+
+All scheduling and display hints use Laravel's `config('app.timezone')`
+from `APP_TIMEZONE`. Keep both applications configured identically.
+Notification payloads snapshot the timezone when recorded; legacy payloads
+fall back to the current app timezone. Existing date/time fields store local
+wall times, so changing configuration does not convert existing appointments.
+
+The panel scheduler sends outbox mail every minute (up to 100 per run), oldest
+last-attempt first so permanently failing messages cannot starve new mail, using
+the customer's request locale and the Turkish site contact email for admin
+notifications. Transport failures, non-delivery log/array mailers or missing contact email stay pending, are
+reported in logs/command output and counted on the calendar. A durable outbox
+is used instead of cross-application serialized queue jobs: only the panel
+needs mail transport configuration. Delivery is at-least-once; a crash after
+SMTP acceptance but before recording `sent_at` can cause a duplicate on retry.
+Run one panel scheduler host with a persistent cache for overlap prevention.
+Retries use 1/5/15/60-minute backoff from the previous attempt's `updated_at`,
+without deleting failed entries. The sender starts no new deliveries after a
+five-minute run budget, in addition to the 100-message batch limit. The active
+SMTP call retains the existing mail transport timeout.
+
+Activity cleanup runs on the first day of each month and deletes only records
+older than 30 days using Spatie's `activitylog:clean --days=30 --force`.
+No appointment records are removed by this cleanup.
+
+A separate `appointments:prune --force` task runs at 03:00 on January 1 and
+July 1. It permanently removes requests whose last update and optional
+appointment date are older than six months, including soft-deleted records
+and their related outbox copies. Other six-month-old outbox entries are
+removed unless linked to recent/future appointments. Deletion runs in
+500-record transactions under the scheduling lock and shares the sender's
+cache lock so mail cannot be sent while its record is deleted. This does not
+delete server logs, backups or clinical records. Semiannual execution is not
+an exact six-month maximum retention policy.
 
 ## Operational boundaries
 

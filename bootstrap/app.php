@@ -27,8 +27,17 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withSchedule(function (Schedule $schedule): void {
         $schedule->command('activitylog:clean --days=30 --force --no-interaction')
-            ->weekly()
+            ->monthly()
+            ->withoutOverlapping()
             ->appendOutputTo(storage_path('logs/activitylog-clean.log'));
+        $schedule->command('appointments:send-notifications')
+            ->everyMinute()
+            ->withoutOverlapping()
+            ->appendOutputTo(storage_path('logs/appointment-notifications.log'));
+        $schedule->command('appointments:prune --force')
+            ->cron('0 3 1 1,7 *')
+            ->withoutOverlapping()
+            ->appendOutputTo(storage_path('logs/appointment-prune.log'));
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->respond(function (Response $response): Response {

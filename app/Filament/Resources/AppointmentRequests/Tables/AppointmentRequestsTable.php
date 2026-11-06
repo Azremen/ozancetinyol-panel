@@ -29,10 +29,12 @@ class AppointmentRequestsTable
                 TextColumn::make('phone')
                     ->label(__('physio.phone'))
                     ->searchable(),
+                TextColumn::make('email')->label(__('appointments.email'))->searchable(),
                 TextColumn::make('preferred_date')
                     ->label(__('physio.preferred_date'))
                     ->date()
                     ->sortable(),
+                TextColumn::make('preferred_time')->label(__('appointments.time'))->sortable(),
                 TextColumn::make('status')
                     ->label(__('physio.status'))
                     ->badge()

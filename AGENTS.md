@@ -13,6 +13,11 @@ a separate application in [../ozancetinyol-front](../ozancetinyol-front/README.m
   schema, model, and media-contract changes with the frontend consumers.
 - Follow existing Filament resource, form, table, action, and model patterns.
   Preserve Turkish/English content and existing translation conventions.
+- Add application UI and email translations to `lang/tr.json` and
+  `lang/en.json`, using matching flat keys (for example `appointments.time`).
+  Do not create PHP translation group files for new application features.
+  Preserve existing framework PHP translation files. Validate JSON syntax,
+  duplicate keys, locale-key parity, and placeholder substitution.
 - Preserve resource authorization through
   `app/Filament/Resources/BaseResource.php` and `GlobalPolicy`; do not bypass
   permission checks in new pages or actions.

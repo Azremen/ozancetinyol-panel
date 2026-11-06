@@ -3,12 +3,14 @@
 namespace Tests\Feature;
 
 use App\Filament\Pages\HomePageSettings;
+use App\Filament\Pages\LegalPageSettings;
 use App\Filament\Pages\ManageSettings;
 use App\Models\Setting;
 use App\Models\User;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
 use Livewire\Livewire;
 use Mockery;
@@ -76,6 +78,27 @@ class SettingsPagesTransactionTest extends TestCase
 
         $this->assertSame('Yeni', Setting::get('home_about_title'));
         $this->assertSame('Before', Setting::query()->where('key', 'home_about_title')->firstOrFail()->value['en']);
+    }
+
+    public function test_legal_settings_page_is_registered_and_saves_bilingual_content(): void
+    {
+        $this->assertTrue(Route::has(LegalPageSettings::getRouteName()));
+        $this->assertFalse(LegalPageSettings::canAccess());
+        $this->loginAdmin();
+
+        Livewire::test(LegalPageSettings::class)
+            ->set('data.legal_privacy_title.tr', 'KVKK ve gizlilik')
+            ->set('data.legal_privacy_title.en', 'Privacy policy')
+            ->set('data.legal_privacy_content.tr', '<p>Gizlilik metni</p>')
+            ->set('data.legal_cookies_title.tr', 'Çerez politikası')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertSame(
+            ['tr' => 'KVKK ve gizlilik', 'en' => 'Privacy policy'],
+            Setting::where('key', 'legal_privacy_title')->firstOrFail()->value,
+        );
+        $this->assertSame('Çerez politikası', Setting::get('legal_cookies_title'));
     }
 
     private function loginAdmin(): void

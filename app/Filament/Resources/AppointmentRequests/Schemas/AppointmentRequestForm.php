@@ -4,8 +4,9 @@ namespace App\Filament\Resources\AppointmentRequests\Schemas;
 
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\TimePicker;
 use Filament\Schemas\Schema;
 
 class AppointmentRequestForm
@@ -23,9 +24,11 @@ class AppointmentRequestForm
                     ->tel()
                     ->required()
                     ->maxLength(30),
+                TextInput::make('email')->label(__('appointments.email'))->email()->required()->maxLength(255),
                 DatePicker::make('preferred_date')
                     ->label(__('physio.preferred_date'))
                     ->native(false),
+                TimePicker::make('preferred_time')->label(__('appointments.time'))->seconds(false)->format('H:i'),
                 Select::make('status')
                     ->label(__('physio.status'))
                     ->options([

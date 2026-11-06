@@ -115,6 +115,81 @@ generated URLs to HTTPS does not replace this redirect. Configure trusted
 proxies when TLS terminates upstream. HTTPS responses send HSTS without
 `includeSubDomains` or preload until all subdomains have verified TLS support.
 
+## Appointment calendar and email operation
+
+Admin/Developer users can manage Turkish/English KVKK/privacy and cookie
+policy titles, SEO descriptions and content from **Yasal sayfalar / Legal
+pages** at `/legal-page-settings`.
+
+After backing up the shared database, run `php artisan migrate` here. Open
+**Randevu çalışma saatleri / Appointment working hours** as Admin/Developer
+and enable the actual working days, hours, appointment duration and holidays.
+All times use `config('app.timezone')` from `.env`'s `APP_TIMEZONE`; days are
+closed until configured. Set the same `APP_TIMEZONE` in both applications
+(the examples use `Europe/Istanbul`). After changing it, clear or rebuild
+the config cache in both apps. Existing booking date/time values are local
+wall times and are not automatically converted to a different timezone.
+Review existing appointments before changing a live clinic's timezone.
+Emails snapshot the timezone at creation so delayed delivery cannot relabel
+them; older outbox entries without a timezone use the current app setting.
+Use **Müsaitlik takvimi / Availability calendar** on the appointment list.
+Working hours are available at `/appointment-settings` and from the appointment
+list's working-hours button (Admin/Developer only). After deploying new panel
+pages/routes, clear both Filament's component discovery cache and Laravel's
+route cache:
+
+```powershell
+php artisan filament:clear-cached-components
+php artisan route:clear
+```
+
+Filament's discovery cache is used only for web requests, so a successful
+`route:list` alone does not prove the browser has the new pages. In production,
+rebuild component discovery before caching routes:
+
+```powershell
+php artisan filament:cache-components
+php artisan route:cache
+```
+Only confirmed appointments appear as booked on the public calendar.
+Complete email/date/time on legacy requests before confirming.
+
+Configure the panel's real SMTP mailer (`MAIL_MAILER=smtp`, host, port,
+credentials and sender) and the site contact email in general settings.
+Log/array mailers (including failover to log) are rejected: they do not deliver
+email, so notifications stay pending until a real transport is configured.
+Customer receipt/confirmation and admin pending/confirmation emails are
+persisted with the appointment and delivered by the panel scheduler.
+Failed deliveries remain pending and appear as a warning on the calendar.
+Retries wait 1, 5, 15 and then 60 minutes after consecutive failures, without
+discarding pending messages. Each run handles at most 100 messages and stops
+starting new sends after five minutes (the current transport call may finish
+after that budget). Sent messages are not sent again on ordinary retries.
+
+Configure your server scheduler to run this from the panel directory every
+minute (Windows Task Scheduler or cron, using absolute paths):
+
+```powershell
+php artisan schedule:run
+```
+
+For local continuous scheduling, keep `php artisan schedule:work` running.
+Use one scheduler host and a persistent cache store. Monthly activity cleanup
+runs on day 1 and removes only logs older than 30 days. To manually retry
+pending mail, run `php artisan appointments:send-notifications`.
+The sender uses a shared cache lock to prevent concurrent manual/scheduled runs.
+
+`appointments:prune --force` runs on January 1 and July 1 at 03:00 in the
+application timezone. It permanently deletes appointments whose last update
+and preferred date are both older than six months (a missing date is allowed),
+including soft-deleted records and their related notification copies. Other
+notification records older than six months are deleted unless their appointment
+date is within the protected recent/future window. Sent and failed notifications
+are both in scope. The sender and cleanup share a lock to prevent concurrent
+delivery/deletion. Cleanup does not remove server logs, backups or clinical
+records. A six-monthly run means eligible data can remain until the next run,
+so this is not an exact six-month maximum retention guarantee.
+
 ## Validation
 
 Run relevant tests from this application's directory, with an isolated,

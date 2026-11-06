@@ -25,6 +25,7 @@ class AppointmentRequestDeletionTest extends TestCase
             $table->timestamps();
             $table->softDeletes();
         });
+        (require database_path('migrations\2026_11_06_000001_add_appointment_scheduling.php'))->up();
     }
 
     public function test_appointment_requests_can_be_soft_deleted_restored_and_permanently_deleted(): void

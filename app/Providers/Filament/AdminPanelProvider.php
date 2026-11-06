@@ -2,8 +2,10 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Pages\AppointmentSettings;
 use App\Filament\Pages\Auth\Login;
 use App\Filament\Pages\HomePageSettings;
+use App\Filament\Pages\LegalPageSettings;
 use App\Filament\Pages\ManageSettings;
 use App\Http\Middleware\NoIndexMiddleware;
 use App\Http\Middleware\SetLocale;
@@ -51,6 +53,8 @@ class AdminPanelProvider extends PanelProvider
                 Dashboard::class,
                 HomePageSettings::class,
                 ManageSettings::class,
+                AppointmentSettings::class,
+                LegalPageSettings::class,
             ])
             ->widgets([
                 AccountWidget::class,
