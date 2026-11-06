@@ -133,6 +133,9 @@ Review existing appointments before changing a live clinic's timezone.
 Emails snapshot the timezone at creation so delayed delivery cannot relabel
 them; older outbox entries without a timezone use the current app setting.
 Use **Müsaitlik takvimi / Availability calendar** on the appointment list.
+The daily view includes previous/next-day and today controls, available/booked/
+past slot counts, colored time cards and appointment status cards. It supports
+mobile layouts and the panel's dark mode; pending requests do not reserve slots.
 Working hours are available at `/appointment-settings` and from the appointment
 list's working-hours button (Admin/Developer only). After deploying new panel
 pages/routes, clear both Filament's component discovery cache and Laravel's

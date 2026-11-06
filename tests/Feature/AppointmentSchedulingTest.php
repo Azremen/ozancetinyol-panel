@@ -377,6 +377,49 @@ class AppointmentSchedulingTest extends TestCase
             ->set('data.status', 'confirmed')->call('create')->assertHasErrors(['data.preferred_time']);
     }
 
+    public function test_calendar_navigation_and_daily_summary_in_both_languages(): void
+    {
+        $this->loginAdmin();
+        $this->request()->update(['status' => 'confirmed']);
+        $this->request(['name' => 'Pending Patient']);
+
+        foreach (['tr', 'en'] as $locale) {
+            app()->setLocale($locale);
+            Livewire::test(AppointmentCalendar::class)
+                ->set('date', '2026-11-10')
+                ->assertSee(__('appointments.day_slots'))
+                ->assertSee(__('appointments.calendar_hint'))
+                ->assertSee(__('appointments.busy'))
+                ->assertSee(__('appointments.available'))
+                ->assertSee('Pending Patient')
+                ->assertViewHas('slotCounts', fn ($counts) => $counts['busy'] === 1 && $counts['available'] === 8)
+                ->assertViewHas('appointments', fn ($appointments) => $appointments->count() === 2)
+                ->call('nextDay')->assertSet('date', '2026-11-11')
+                ->assertSee(__('appointments.no_requests'))
+                ->call('previousDay')->assertSet('date', '2026-11-10')
+                ->call('goToToday')->assertSet('date', '2026-11-09')
+                ->assertHasNoErrors();
+        }
+    }
+
+    public function test_calendar_closed_day_and_month_boundary_navigation(): void
+    {
+        $this->loginAdmin();
+        $setting = Setting::where('key', 'appointment_schedule')->firstOrFail();
+        $schedule = $setting->value;
+        $schedule['closed_dates'] = [['date' => '2026-12-01']];
+        $setting->update(['value' => $schedule]);
+
+        Livewire::test(AppointmentCalendar::class)
+            ->set('date', '2026-11-30')->call('nextDay')
+            ->assertSet('date', '2026-12-01')
+            ->assertSee(__('appointments.no_slots'))
+            ->assertSee(__('appointments.settings'))
+            ->assertViewHas('appointmentSlots', [])
+            ->call('previousDay')->assertSet('date', '2026-11-30')
+            ->assertHasNoErrors();
+    }
+
     public function test_calendar_and_working_hours_routes_are_registered(): void
     {
         $this->assertTrue(Route::has('filament.admin.resources.appointment-requests.calendar'));
