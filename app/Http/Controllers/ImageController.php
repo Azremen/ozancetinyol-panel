@@ -44,6 +44,11 @@ class ImageController extends Controller
             abort(400, 'Invalid image path');
         }
 
+        $sourceExtension = strtolower(pathinfo($diskPath, PATHINFO_EXTENSION));
+        if (! in_array($sourceExtension, ['jpg', 'jpeg', 'png', 'webp', 'gif'], true)) {
+            abort(422, 'Unsupported image format');
+        }
+
         try {
             $disk = Storage::disk('public');
 
@@ -67,7 +72,6 @@ class ImageController extends Controller
         $wantsWebp = $requestedFormat === null
             && ($request->boolean('webp')
                 || str_contains(strtolower($request->header('Accept', '')), 'image/webp'));
-        $sourceExtension = strtolower(pathinfo($diskPath, PATHINFO_EXTENSION)) ?: 'jpg';
         $outputExtension = $wantsWebp ? 'webp' : ($requestedFormat ?? $sourceExtension);
         $cacheKey = 'cache/img/'.$width.'x'.$height.'/'.$sourceVersion.'/'.$diskPath;
 

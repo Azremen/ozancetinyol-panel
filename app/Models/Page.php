@@ -26,6 +26,22 @@ class Page extends Model implements HasMedia
     ];
 
     /**
+     * Exact hosts a map iframe may point to. Must stay in sync with the
+     * frontend project's `frame-src` CSP directive and its copy of this list.
+     */
+    public const ALLOWED_MAP_EMBED_HOSTS = [
+        'www.google.com',
+        'maps.google.com',
+    ];
+
+    /**
+     * Hosts that are rewritten to an allowed host before validation.
+     */
+    private const MAP_EMBED_HOST_ALIASES = [
+        'google.com' => 'www.google.com',
+    ];
+
+    /**
      * Important: Title and SEO description are stored as JSON.
      */
     protected $casts = [
@@ -54,16 +70,27 @@ class Page extends Model implements HasMedia
 
         $parts = parse_url($value);
 
-        if (! is_array($parts) || empty($parts['host'])) {
+        if (! is_array($parts) || empty($parts['host']) || empty($parts['scheme'])) {
+            return null;
+        }
+
+        if (! in_array(Str::lower($parts['scheme']), ['http', 'https'], true)) {
+            return null;
+        }
+
+        // Embedded credentials or a non-standard port would make the iframe
+        // target differ from what the frontend CSP frame-src allowlist expects.
+        if (isset($parts['user']) || isset($parts['pass']) || isset($parts['port'])) {
             return null;
         }
 
         $host = Str::lower($parts['host']);
+        $host = self::MAP_EMBED_HOST_ALIASES[$host] ?? $host;
         $path = $parts['path'] ?? '';
         $query = $parts['query'] ?? '';
 
-        $isGoogleHost = Str::is(['google.*', '*.google.*', 'googleusercontent.com', '*.googleusercontent.com'], $host);
-        $isEmbedPath = Str::contains($path, '/maps/embed') || Str::contains($query, 'output=embed');
+        $isGoogleHost = in_array($host, self::ALLOWED_MAP_EMBED_HOSTS, true);
+        $isEmbedPath = Str::startsWith($path, '/maps/embed') || Str::contains($query, 'output=embed');
 
         if (! $isGoogleHost || ! $isEmbedPath) {
             return null;

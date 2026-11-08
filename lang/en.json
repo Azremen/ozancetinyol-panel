@@ -168,7 +168,7 @@
     "panel.common.social_media": "Social Media",
     "panel.common.logo_help": "Site logo. PNG or SVG format recommended (for transparent background). Used by the navbar and schema.org.",
     "panel.common.favicon": "Favicon",
-    "panel.common.favicon_help": "Small icon shown in the browser tab. Upload in ICO, PNG or SVG format (recommended size: 32×32 px).",
+    "panel.common.favicon_help": "Small icon shown in the browser tab. Upload in ICO or PNG format (recommended size: 32×32 px, max 512 KB).",
     "panel.common.enabled": "Enabled",
     "panel.common.disabled": "Disabled",
     "panel.common.blocked_ips": "Blocked IP Addresses",

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Posts\Schemas;
 
+use App\Support\UploadRules;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\TextInput;
@@ -36,7 +37,7 @@ class PostForm
                                 Toggle::make('is_active')->label(__('panel.common.active'))->default(true),
                                 FileUpload::make('image')
                                     ->label(__('panel.common.image'))
-                                    ->image()
+                                    ->acceptedFileTypes(UploadRules::IMAGE_MIME_TYPES)
                                     ->directory('posts')
                                     ->columnSpanFull(),
                             ])->columns(2),

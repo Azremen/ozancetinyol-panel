@@ -4,6 +4,7 @@ namespace App\Filament\Pages;
 
 use App\Models\Setting;
 use App\Models\User;
+use App\Support\UploadRules;
 use Filament\Actions\Action;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
@@ -104,7 +105,7 @@ class HomePageSettings extends Page
                                     ->schema([
                                         FileUpload::make('home_slider_1_image')
                                             ->label(__('panel.common.image'))
-                                            ->image()->disk('public')
+                                            ->acceptedFileTypes(UploadRules::IMAGE_MIME_TYPES)->disk('public')
                                             ->directory('settings'),
                                     ]),
                             ]),
@@ -126,11 +127,11 @@ class HomePageSettings extends Page
                                     ->schema([
                                         FileUpload::make('home_about_image_1')
                                             ->label(__('panel.common.image_1'))
-                                            ->image()->disk('public')
+                                            ->acceptedFileTypes(UploadRules::IMAGE_MIME_TYPES)->disk('public')
                                             ->directory('settings'),
                                         FileUpload::make('home_about_image_2')
                                             ->label(__('panel.common.image_2'))
-                                            ->image()->disk('public')
+                                            ->acceptedFileTypes(UploadRules::IMAGE_MIME_TYPES)->disk('public')
                                             ->directory('settings'),
                                     ]),
                                 Fieldset::make(__('panel.common.content'))
@@ -158,7 +159,7 @@ class HomePageSettings extends Page
                                         TextInput::make('home_testimonials_title.en')->label(__('panel.common.title').' (EN)'),
                                         FileUpload::make('home_testimonials_background')
                                             ->label(__('panel.common.background_image'))
-                                            ->image()->disk('public')
+                                            ->acceptedFileTypes(UploadRules::IMAGE_MIME_TYPES)->disk('public')
                                             ->directory('settings')
                                             ->columnSpanFull(),
                                     ]),

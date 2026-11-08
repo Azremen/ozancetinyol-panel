@@ -5,6 +5,9 @@
 
     RewriteEngine On
 
+    # Never execute or serve server-side scripts from user uploads (public/storage -> storage/app/public).
+    RewriteRule ^storage/.*\.(?:php[0-9]?|phtml|phar|shtml|cgi|pl|py|htaccess)$ - [F,L,NC]
+
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
@@ -63,4 +66,10 @@
     <FilesMatch "\.(css|js|mjs|woff2|woff|ttf|eot|svg|ico|png|jpe?g|webp|avif)$">
         Header set Cache-Control "public, max-age=31536000, immutable"
     </FilesMatch>
+
+    # Uploaded files are untrusted: when opened directly they must not run scripts or be framed.
+    <If "%{REQUEST_URI} =~ m#^/storage/#">
+        Header always set Content-Security-Policy "default-src 'none'; img-src 'self' data:; style-src 'unsafe-inline'; sandbox"
+        Header always set X-Content-Type-Options "nosniff"
+    </If>
 </IfModule>

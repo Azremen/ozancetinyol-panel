@@ -97,7 +97,7 @@ class AdminPanelProvider extends PanelProvider
                     ];
 
                     if ($favicon !== null) {
-                        $tags[] = '<link rel="icon" href="'.$favicon.'">';
+                        $tags[] = '<link rel="icon" href="'.e($favicon).'">';
                     } else {
                         $tags[] = '<link rel="icon" type="image/x-icon" href="'.asset('favicon.ico').'">';
                         $tags[] = '<link rel="icon" type="image/png" sizes="32x32" href="'.asset('favicon-32x32.png').'">';

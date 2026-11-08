@@ -37,6 +37,10 @@ Global CSP middleware and the exception response callback apply security
 headers to normal and error responses. Script/style inline permissions and
 script evaluation remain documented Filament/Alpine compatibility exceptions;
 third-party script and connection origins are otherwise explicitly restricted.
+The globally-registered `BlockIpMiddleware` enforces the comma/space-separated
+`blocked_ips` setting from general settings, rejecting matching client IPs with
+403 (IPv4-mapped IPv6 addresses are normalized to IPv4). HTTPS responses also
+send HSTS with `includeSubDomains` and `preload`.
 
 Resources manage appointments, activities, facilities, menus, pages, posts,
 roles, sliders, testimonials, URLs, and users. Existing resources inherit
@@ -45,8 +49,13 @@ Retain this path for new resource operations.
 
 Role seeding defines `Admin`, `Manager`, `Personnel Manager`, and `Personnel`
 and clears the permission cache. The administrator seeder only creates the
-initial account when both `ADMIN_EMAIL` and `ADMIN_PASSWORD` are configured;
-`ADMIN_NAME` supplies its configured name.
+initial account when both `ADMIN_EMAIL` and `ADMIN_PASSWORD` are configured
+and the password meets the strength rule (12+ characters, mixed case, digits,
+symbols); `ADMIN_NAME` supplies its configured name.
+Activity logging excludes `User.password`/`remember_token` and masks
+`Setting` values whose key denotes a secret, so activity readers never see
+credential material. `TrustProxies` reads `TRUSTED_PROXIES` so client IPs and
+the HTTPS scheme are correct behind a reverse proxy.
 Role assignment on user create/edit and edits to Admin/Developer accounts are
 restricted to Admin/Developer actors, independently of delegated user-write
 permissions. Inline active-state toggles on posts, testimonials, and facilities
@@ -63,6 +72,12 @@ enforce the same per-record update authorization as their edit pages.
 
 The panel environment example uses `FILESYSTEM_DISK=public` and `PANEL_URL`
 for explicit public media URLs. Preserve config-driven disk and URL behavior.
+Livewire temporary uploads are the exception: they always use the private
+`local` disk with a raster-image extension allow-list, because the temporary
+upload endpoint is reachable before login. Every Filament upload component
+declares an explicit MIME allow-list from `App\Support\UploadRules` (never
+`->image()`, which admits SVG), and `public/.htaccess` blocks script execution
+and sandboxes direct views under `/storage/`.
 There is no content synchronization API required for these shared reads.
 
 The public image resize endpoint accepts `format=jpg` for social preview
@@ -113,8 +128,10 @@ alias maintenance but is hidden from navigation; ordinary page creation no
 longer requires a separate URL workflow. No shared schema migration is needed.
 
 The `/img/{width}/{height}` endpoint always reads the configured `public`
-disk, rejects non-positive dimensions, fingerprints source files for cache
-invalidation, and varies responses by `Accept` when negotiating WebP.
+disk, rejects non-positive dimensions, limits the source to an image extension
+allow-list (jpg/jpeg/png/webp/gif), fingerprints source files for cache
+invalidation, varies responses by `Accept` when negotiating WebP, and is
+throttled to limit on-demand disk/CPU usage.
 
 ## Appointment contract
 

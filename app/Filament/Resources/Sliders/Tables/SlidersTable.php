@@ -10,10 +10,11 @@ use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreAction;
 use Filament\Actions\RestoreBulkAction;
-use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\Storage;
 
 class SlidersTable
 {
@@ -34,8 +35,13 @@ class SlidersTable
                         }
                         $html = '';
                         foreach (array_slice($imgs, 0, 5) as $img) {
-                            $url = $img;
-                            $html .= "<img src=\"{$url}\" style=\"height:40px;object-fit:cover;margin-right:6px;border-radius:4px\" />";
+                            $url = self::resolvePreviewUrl($img);
+
+                            if ($url === null) {
+                                continue;
+                            }
+
+                            $html .= '<img src="'.e($url).'" alt="" style="height:40px;object-fit:cover;margin-right:6px;border-radius:4px" />';
                         }
 
                         return $html;
@@ -69,5 +75,35 @@ class SlidersTable
                 ]),
             ])
             ->defaultSort('order', 'asc');
+    }
+
+    /**
+     * Stored slider paths come from FileUpload state, which a client can tamper
+     * with. Only relative paths on the public disk (or absolute HTTP(S) URLs) are
+     * rendered, and the value is always HTML-escaped by the caller.
+     */
+    public static function resolvePreviewUrl(mixed $path): ?string
+    {
+        if (! is_string($path) || trim($path) === '') {
+            return null;
+        }
+
+        $path = trim($path);
+
+        if (preg_match('~^https?://~i', $path) === 1) {
+            return filter_var($path, FILTER_VALIDATE_URL) !== false ? $path : null;
+        }
+
+        $relative = ltrim(str_replace('\\', '/', $path), '/');
+
+        if ($relative === '' || str_contains($relative, '..') || str_contains($relative, "\0")) {
+            return null;
+        }
+
+        if (preg_match('~^[A-Za-z0-9/_.\-]+$~', $relative) !== 1) {
+            return null;
+        }
+
+        return Storage::disk('public')->url($relative);
     }
 }

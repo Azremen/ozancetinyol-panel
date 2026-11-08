@@ -172,7 +172,7 @@
     "panel.common.social_media": "Sosyal Medya",
     "panel.common.logo_help": "Site logosu. PNG veya SVG formatı önerilir (şeffaf arka plan için). Navbar ve schema.org tarafından kullanılır.",
     "panel.common.favicon": "Favicon",
-    "panel.common.favicon_help": "Tarayıcı sekmesinde görünen küçük ikon. ICO, PNG veya SVG formatında yükleyin (önerilen boyut: 32×32 px).",
+    "panel.common.favicon_help": "Tarayıcı sekmesinde görünen küçük ikon. ICO veya PNG formatında yükleyin (önerilen boyut: 32×32 px, en fazla 512 KB).",
     "panel.common.enabled": "Aktif",
     "panel.common.disabled": "Pasif",
     "panel.common.blocked_ips": "Engellenen IP Adresleri",

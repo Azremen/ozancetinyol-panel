@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Sliders\Schemas;
 
 use App\Models\Url;
+use App\Support\UploadRules;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -23,7 +24,7 @@ class SliderForm
                 Section::make(__('panel.common.image'))->schema([
                     FileUpload::make('images')
                         ->label(__('panel.sliders.form.fields.image'))
-                        ->image()
+                        ->acceptedFileTypes(UploadRules::IMAGE_MIME_TYPES)
                         ->directory('sliders')
                         ->multiple()
                         ->reorderable()

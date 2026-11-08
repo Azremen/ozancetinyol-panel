@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Pages\Schemas;
 
 use App\Models\Page;
 use App\Services\PageUrls;
+use App\Support\UploadRules;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\RichEditor\TextColor;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
@@ -122,7 +123,7 @@ class PageForm
                             ->collection('page_images')
                             ->multiple()
                             ->reorderable()
-                            ->image()
+                            ->acceptedFileTypes(UploadRules::IMAGE_MIME_TYPES)
                             ->columnSpanFull(),
                     ]),
             ]);

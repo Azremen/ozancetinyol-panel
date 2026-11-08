@@ -4,6 +4,8 @@ namespace Database\Seeders;
 
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rules\Password;
 use InvalidArgumentException;
 
 class AdminUserSeeder extends Seeder
@@ -23,6 +25,8 @@ class AdminUserSeeder extends Seeder
             throw new InvalidArgumentException('Both ADMIN_EMAIL and ADMIN_PASSWORD must be set to create the panel administrator.');
         }
 
+        $this->assertStrongPassword($password);
+
         $admin = User::query()->firstOrCreate(
             ['email' => $email],
             [
@@ -32,5 +36,23 @@ class AdminUserSeeder extends Seeder
         );
 
         $admin->assignRole('Admin');
+    }
+
+    /**
+     * The initial administrator is the most valuable account on the panel;
+     * refuse to seed it with a guessable password.
+     */
+    private function assertStrongPassword(string $password): void
+    {
+        $validator = Validator::make(
+            ['password' => $password],
+            ['password' => [Password::min(12)->letters()->mixedCase()->numbers()->symbols()]],
+        );
+
+        if ($validator->fails()) {
+            throw new InvalidArgumentException(
+                'ADMIN_PASSWORD is too weak: use at least 12 characters with upper/lower case letters, numbers and symbols.'
+            );
+        }
     }
 }

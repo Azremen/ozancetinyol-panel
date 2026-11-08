@@ -56,6 +56,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Trusted Proxies
+    |--------------------------------------------------------------------------
+    |
+    | Comma separated proxy IPs/CIDRs whose X-Forwarded-* headers may be
+    | trusted (e.g. a Plesk/nginx front or a load balancer), or "*" when the
+    | app is only reachable through such a proxy. Leave empty when PHP is
+    | exposed directly; trusting unknown proxies lets clients spoof their IP.
+    |
+    */
+
+    'trusted_proxies' => env('TRUSTED_PROXIES'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------
     |

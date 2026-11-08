@@ -74,7 +74,7 @@ class CspHeaderTest extends TestCase
         $policy = $response->headers->get('Content-Security-Policy');
         $this->assertNotNull($policy);
         $this->assertStringContainsString('upgrade-insecure-requests', $policy);
-        $this->assertSame('max-age=31536000', $response->headers->get('Strict-Transport-Security'));
+        $this->assertSame('max-age=31536000; includeSubDomains; preload', $response->headers->get('Strict-Transport-Security'));
     }
 
     public function test_cloudflare_analytics_script_is_allowed(): void

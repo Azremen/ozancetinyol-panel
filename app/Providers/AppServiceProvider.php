@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Observers\RoleObserver;
 use App\Observers\SliderObserver;
 use App\Policies\GlobalPolicy;
+use App\Support\UploadRules;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Illuminate\Auth\Events\Login;
@@ -104,12 +105,20 @@ class AppServiceProvider extends ServiceProvider
             return Str::slug($name).'-'.uniqid().'.'.$ext;
         };
 
+        // Fail-safe defaults: every upload is limited to raster images unless a component
+        // explicitly declares another allow-list (e.g. the favicon). Never use `->image()`.
         FileUpload::configureUsing(
-            fn (FileUpload $fileUpload) => $fileUpload->getUploadedFileNameForStorageUsing($slugifyFileName)
+            fn (FileUpload $fileUpload) => $fileUpload
+                ->getUploadedFileNameForStorageUsing($slugifyFileName)
+                ->acceptedFileTypes(UploadRules::IMAGE_MIME_TYPES)
+                ->maxSize(UploadRules::MAX_IMAGE_KILOBYTES)
         );
 
         SpatieMediaLibraryFileUpload::configureUsing(
-            fn (SpatieMediaLibraryFileUpload $fileUpload) => $fileUpload->getUploadedFileNameForStorageUsing($slugifyFileName)
+            fn (SpatieMediaLibraryFileUpload $fileUpload) => $fileUpload
+                ->getUploadedFileNameForStorageUsing($slugifyFileName)
+                ->acceptedFileTypes(UploadRules::IMAGE_MIME_TYPES)
+                ->maxSize(UploadRules::MAX_IMAGE_KILOBYTES)
         );
     }
 

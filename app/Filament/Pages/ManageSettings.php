@@ -2,8 +2,10 @@
 
 namespace App\Filament\Pages;
 
+use App\Models\Page as PageModel;
 use App\Models\Setting;
 use App\Models\User;
+use App\Support\UploadRules;
 use Filament\Actions\Action;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
@@ -113,13 +115,25 @@ class ManageSettings extends Page
                                             ->label(__('panel.common.map_embed_url'))
                                             ->helperText(__('panel.common.map_embed_url_helper'))
                                             ->rows(3)
-                                            ->columnSpanFull(),
+                                            ->columnSpanFull()
+                                            ->dehydrateStateUsing(fn (?string $state): ?string => PageModel::normalizeMapEmbedUrl($state))
+                                            ->rule(function () {
+                                                return function (string $attribute, $value, \Closure $fail): void {
+                                                    if (blank($value)) {
+                                                        return;
+                                                    }
+
+                                                    if (! PageModel::normalizeMapEmbedUrl((string) $value)) {
+                                                        $fail(__('panel.pages.form.fields.map_embed_validation'));
+                                                    }
+                                                };
+                                            }),
                                     ]),
                                 Fieldset::make(__('panel.common.logo'))
                                     ->schema([
                                         FileUpload::make('logo')
                                             ->label(__('panel.common.logo'))
-                                            ->image()
+                                            ->acceptedFileTypes(UploadRules::IMAGE_MIME_TYPES)
                                             ->disk('public')
                                             ->directory('settings')
                                             ->helperText(__('panel.common.logo_help'))
@@ -129,6 +143,8 @@ class ManageSettings extends Page
                                     ->schema([
                                         FileUpload::make('favicon')
                                             ->label(__('panel.common.favicon'))
+                                            ->acceptedFileTypes(UploadRules::FAVICON_MIME_TYPES)
+                                            ->maxSize(UploadRules::MAX_FAVICON_KILOBYTES)
                                             ->disk('public')
                                             ->directory('settings')
                                             ->helperText(__('panel.common.favicon_help'))
@@ -233,7 +249,7 @@ class ManageSettings extends Page
                                     ->schema([
                                         FileUpload::make('og_image')
                                             ->label(__('panel.common.og_image'))
-                                            ->image()
+                                            ->acceptedFileTypes(UploadRules::IMAGE_MIME_TYPES)
                                             ->disk('public')
                                             ->directory('settings')
                                             ->helperText('Recommended 1200×630 px. Used for Facebook, WhatsApp and Twitter shares.')

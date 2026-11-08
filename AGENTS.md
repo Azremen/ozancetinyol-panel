@@ -28,6 +28,15 @@ a separate application in [../ozancetinyol-front](../ozancetinyol-front/README.m
   `ADMIN_*` values, never hardcoded credentials.
 - Use the existing Spatie Media Library integration and activity logging.
   Resolve disk behavior through configuration, not direct runtime `env()` calls.
+- Uploads: never call `->image()` on `FileUpload`/`SpatieMediaLibraryFileUpload`
+  (it admits SVG). Use the allow-lists in `app/Support/UploadRules.php`, keep
+  Livewire temporary uploads on the private `local` disk, and never render
+  stored upload paths into HTML without validation and escaping. See
+  "Uploads and request hardening" in [README.md](README.md).
+- Keep credential material out of the activity log: exclude secret attributes
+  (`logExcept`) or mask them in `tapActivity`, as `User` and `Setting` do.
+- Map embed URLs must pass `Page::normalizeMapEmbedUrl()`; keep
+  `Page::ALLOWED_MAP_EMBED_HOSTS` identical to the frontend copy.
 - Keep social image resize output deterministic when an explicit format is
   requested; do not let WebP content negotiation override `format=jpg`.
 - Preserve the shared appointment fields and casts, including locale, status,
@@ -45,6 +54,7 @@ select tests relevant to the changed behavior:
 ```powershell
 php artisan test --compact tests/Feature/PanelHtmlMarkupTest.php
 php artisan test --compact --filter=FrameworkTranslationsTest
+php artisan test --compact --filter=SecurityHardeningTest
 ```
 
 Run `npm run build` for asset changes and `composer validate` for Composer

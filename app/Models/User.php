@@ -64,6 +64,10 @@ class User extends Authenticatable implements FilamentUser
 
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()->logAll()->logOnlyDirty();
+        // Never copy credential material into the (widely readable) activity log.
+        return LogOptions::defaults()
+            ->logAll()
+            ->logExcept(['password', 'remember_token'])
+            ->logOnlyDirty();
     }
 }

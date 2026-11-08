@@ -23,8 +23,12 @@ panel owns the shared schema and migrations.
 3. Set `APP_URL` to the panel's deployment URL and configure `PANEL_URL` if
    uploaded media needs an explicit public base URL.
 4. Set `ADMIN_NAME`, `ADMIN_EMAIL`, and `ADMIN_PASSWORD` before seeding if the
-   initial administrator should be created.
-5. Install dependencies, generate this app's own key, migrate, seed, and build
+   initial administrator should be created. The seeder refuses passwords
+   shorter than 12 characters or without mixed case, digits and symbols.
+5. In production set `APP_ENV=production`, an HTTPS `APP_URL`,
+   `SESSION_SECURE_COOKIE=true`, and `TRUSTED_PROXIES` when TLS terminates at
+   nginx/Plesk or a load balancer (see "Uploads and request hardening").
+6. Install dependencies, generate this app's own key, migrate, seed, and build
    assets:
 
 ```powershell
@@ -112,8 +116,57 @@ Vite binds to IPv4 loopback to keep development asset/HMR URLs CSP-compatible.
 
 Production requires TLS and a server-level HTTP-to-HTTPS redirect; forcing
 generated URLs to HTTPS does not replace this redirect. Configure trusted
-proxies when TLS terminates upstream. HTTPS responses send HSTS without
-`includeSubDomains` or preload until all subdomains have verified TLS support.
+proxies when TLS terminates upstream. HTTPS responses send HSTS with
+`includeSubDomains` and `preload`; verify every subdomain serves TLS before
+enabling it, and only keep `preload` after registering the domain with the HSTS
+preload list.
+
+### Uploads and request hardening
+
+Because the panel CSP must allow inline scripts, any file that an attacker can
+place on the panel origin becomes a working XSS or RCE vector. Uploads are
+therefore locked down at several layers:
+
+- **Livewire temporary uploads** (`config/livewire.php`) are written to the
+  private `local` disk, never to the web-served `public` disk, and the upload
+  endpoint only accepts `UploadRules::TEMPORARY_UPLOAD_EXTENSIONS` (raster
+  images and `.ico`). This endpoint is reachable from the unauthenticated login
+  page, so it must never accept scripts or markup. Set
+  `LIVEWIRE_TEMPORARY_FILE_UPLOAD_DISK` only to another private disk.
+- **Filament uploads** use `App\Support\UploadRules` allow-lists. Do not call
+  `->image()`: it accepts `image/*`, which includes SVG (scriptable). Use
+  `->acceptedFileTypes(UploadRules::IMAGE_MIME_TYPES)`; the favicon uses
+  `UploadRules::FAVICON_MIME_TYPES` (PNG/ICO, ≤512 KB). `AppServiceProvider`
+  applies the image allow-list and size cap as a default for every
+  `FileUpload`/`SpatieMediaLibraryFileUpload`, so a component must override it
+  explicitly to accept anything else. `SecurityHardeningTest` fails if
+  `->image()` reappears under `app/Filament`.
+- **Apache** (`public/.htaccess`) returns 403 for `/storage/*.php` and other
+  server-side script extensions, and serves every `/storage/` file with a
+  `sandbox` CSP so a stored SVG/HTML cannot run scripts when opened directly.
+  Replicate both rules in nginx when not using Apache.
+- **Stored paths are untrusted**: `SlidersTable::resolvePreviewUrl()` only
+  renders relative public-disk paths or absolute HTTP(S) URLs and escapes them;
+  the favicon URL is escaped in the `HEAD_START` render hook. FileUpload state
+  can be tampered with by a client, so never interpolate it into HTML raw.
+
+Other request-level controls:
+
+- `App\Http\Middleware\TrustProxies` replaces Laravel's default and reads
+  `TRUSTED_PROXIES` (comma-separated IPs/CIDRs, or `*` when the app is only
+  reachable through a proxy). Without it, IP throttling, `blocked_ips` and
+  HTTPS-only headers see the proxy address. Leave it empty when PHP is exposed
+  directly; trusting unknown proxies lets clients spoof their IP.
+- `Setting` masks values of keys matching `secret|password|token|api_key` in
+  the activity log (`tapActivity`), and `User` excludes `password` and
+  `remember_token` from logging, so activity readers cannot harvest credential
+  material. Secrets that are not editable in the panel belong in `.env`.
+- `Page::normalizeMapEmbedUrl()` accepts only exact Google Maps hosts
+  (`Page::ALLOWED_MAP_EMBED_HOSTS`, mirrored in the frontend) with an embed
+  path; both the page form and the homepage `home_map_embed_url` setting
+  validate and normalize through it.
+- `AdminUserSeeder` enforces a strong `ADMIN_PASSWORD` (≥12 chars, mixed case,
+  digits, symbols). Rotate any administrator password that predates this rule.
 
 ## Appointment calendar and email operation
 

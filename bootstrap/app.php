@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\BlockIpMiddleware;
 use App\Http\Middleware\CspMiddleware;
+use App\Http\Middleware\TrustProxies;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -22,6 +23,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->replace(Illuminate\Http\Middleware\TrustProxies::class, TrustProxies::class);
         $middleware->append(BlockIpMiddleware::class);
         $middleware->prepend(CspMiddleware::class);
     })

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Testimonials\Schemas;
 
+use App\Support\UploadRules;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -41,7 +42,7 @@ class TestimonialForm
                                 Toggle::make('is_active')->label(__('panel.common.active'))->default(true),
                                 FileUpload::make('image')
                                     ->label(__('panel.common.avatar_image'))
-                                    ->image()
+                                    ->acceptedFileTypes(UploadRules::IMAGE_MIME_TYPES)
                                     ->directory('testimonials')
                                     ->columnSpanFull(),
                             ])->columns(2),

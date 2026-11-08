@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Spatie\Activitylog\Contracts\Activity;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
@@ -15,6 +16,8 @@ class Setting extends Model
     use HasFactory, HasTranslations, HasUlids, LogsActivity;
 
     protected $fillable = ['key', 'value', 'type'];
+
+    public const MASKED_VALUE = '********';
 
     /**
      * The Value column is cast to JSON to support multiple languages.
@@ -55,6 +58,34 @@ class Setting extends Model
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()->logAll()->logOnlyDirty();
+    }
+
+    /**
+     * Settings whose values are credentials. Their values are masked before the
+     * activity record is persisted so they never appear in the activity log.
+     */
+    public static function isSecretKey(?string $key): bool
+    {
+        return is_string($key) && preg_match('/secret|password|token|api[_-]?key/i', $key) === 1;
+    }
+
+    public function tapActivity(Activity $activity, string $eventName): void
+    {
+        if (! self::isSecretKey($this->key)) {
+            return;
+        }
+
+        $properties = $activity->properties;
+
+        foreach (['attributes', 'old'] as $bucket) {
+            if (isset($properties[$bucket]['value'])) {
+                $bucketData = $properties[$bucket];
+                $bucketData['value'] = self::MASKED_VALUE;
+                $properties[$bucket] = $bucketData;
+            }
+        }
+
+        $activity->properties = $properties;
     }
 
     protected static function booted(): void

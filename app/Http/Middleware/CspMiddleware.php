@@ -58,7 +58,7 @@ class CspMiddleware
             $response->headers->set('Cache-Control', 'no-cache, no-store, must-revalidate');
         }
         if ($request->isSecure()) {
-            $response->headers->set('Strict-Transport-Security', 'max-age=31536000');
+            $response->headers->set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
         }
 
         if ($response->isRedirection()) {
