@@ -14,7 +14,9 @@ use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
+use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Support\Facades\Storage;
+use LogicException;
 
 class SlidersTable
 {
@@ -104,6 +106,12 @@ class SlidersTable
             return null;
         }
 
-        return Storage::disk('public')->url($relative);
+        $disk = Storage::disk('public');
+
+        if (! $disk instanceof FilesystemAdapter) {
+            throw new LogicException('The public disk must support generating file URLs.');
+        }
+
+        return $disk->url($relative);
     }
 }

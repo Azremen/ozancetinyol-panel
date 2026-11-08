@@ -69,13 +69,13 @@ class Setting extends Model
         return is_string($key) && preg_match('/secret|password|token|api[_-]?key/i', $key) === 1;
     }
 
-    public function tapActivity(Activity $activity, string $eventName): void
+    public function tapActivity(Activity&Model $activity, string $eventName): void
     {
         if (! self::isSecretKey($this->key)) {
             return;
         }
 
-        $properties = $activity->properties;
+        $properties = $activity->getAttribute('properties');
 
         foreach (['attributes', 'old'] as $bucket) {
             if (isset($properties[$bucket]['value'])) {
@@ -85,7 +85,7 @@ class Setting extends Model
             }
         }
 
-        $activity->properties = $properties;
+        $activity->setAttribute('properties', $properties);
     }
 
     protected static function booted(): void
