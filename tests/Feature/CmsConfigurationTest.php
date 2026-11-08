@@ -22,6 +22,7 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
 use Mockery;
+use Mockery\MockInterface;
 use Tests\TestCase;
 
 class CmsConfigurationTest extends TestCase
@@ -211,9 +212,9 @@ class CmsConfigurationTest extends TestCase
     public function test_page_create_title_suggests_slug_and_manual_slug_is_preserved(): void
     {
         Livewire::test(CreatePage::class)->fillForm(['title.tr' => 'Özel Tedavi'])
-            ->assertFormSet(['slug' => 'ozel-tedavi'])
+            ->assertSchemaStateSet(['slug' => 'ozel-tedavi'], 'form')
             ->fillForm(['slug' => 'manual', 'title.tr' => 'Başka Başlık'])
-            ->assertFormSet(['slug' => 'manual'])
+            ->assertSchemaStateSet(['slug' => 'manual'], 'form')
             ->call('create')->assertHasNoFormErrors();
         $this->assertSame('manual', Url::firstOrFail()->slug);
     }
@@ -293,6 +294,7 @@ class CmsConfigurationTest extends TestCase
 
     private function login(bool $admin): void
     {
+        /** @var User&MockInterface $user */
         $user = Mockery::mock(User::class)->makePartial();
         $user->forceFill(['id' => '01J00000000000000000000000', 'name' => 'Admin', 'email' => 'admin@example.test']);
         $user->shouldReceive('hasRole')->andReturn($admin);

@@ -33,7 +33,6 @@ class ImageControllerSocialPreviewTest extends TestCase
         $this->assertSame(1200, imagesx($image));
         $this->assertSame(630, imagesy($image));
         $this->assertLessThan(600 * 1024, strlen($content));
-        imagedestroy($image);
     }
 
     public function test_image_endpoint_rejects_unsupported_social_preview_format(): void

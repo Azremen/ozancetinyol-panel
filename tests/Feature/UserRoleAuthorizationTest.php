@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Livewire\Livewire;
 use Mockery;
+use Mockery\MockInterface;
 use Tests\TestCase;
 
 class UserRoleAuthorizationTest extends TestCase
@@ -74,7 +75,7 @@ class UserRoleAuthorizationTest extends TestCase
         $policy->shouldReceive('restoreAny')->andReturn(false);
         $policy->shouldReceive('forceDelete')->andReturn(false);
         $policy->shouldReceive('forceDeleteAny')->andReturn(false);
-        $this->app->instance(GlobalPolicy::class, $policy);
+        app()->instance(GlobalPolicy::class, $policy);
 
         $this->loginAsDelegatedUser();
     }
@@ -241,6 +242,7 @@ class UserRoleAuthorizationTest extends TestCase
 
     private function loginAsDelegatedUser(): void
     {
+        /** @var User&MockInterface $user */
         $user = Mockery::mock(User::class)->makePartial();
         $user->forceFill(['id' => str_pad('delegated', 26, '0', STR_PAD_LEFT)]);
         $user->shouldReceive('hasRole')->andReturn(false);
@@ -251,6 +253,7 @@ class UserRoleAuthorizationTest extends TestCase
 
     private function loginAsAdminUser(): void
     {
+        /** @var User&MockInterface $user */
         $user = Mockery::mock(User::class)->makePartial();
         $user->forceFill(['id' => str_pad('admin-actor', 26, '0', STR_PAD_LEFT)]);
         $user->shouldReceive('hasRole')->andReturn(true);

@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
 use Livewire\Livewire;
 use Mockery;
+use Mockery\MockInterface;
 use Tests\TestCase;
 
 class SettingsPagesTransactionTest extends TestCase
@@ -103,6 +104,7 @@ class SettingsPagesTransactionTest extends TestCase
 
     private function loginAdmin(): void
     {
+        /** @var User&MockInterface $user */
         $user = Mockery::mock(User::class)->makePartial();
         $user->forceFill([
             'id' => '01J00000000000000000000000',

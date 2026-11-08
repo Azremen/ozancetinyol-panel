@@ -10,6 +10,9 @@ use Illuminate\Validation\ValidationException;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
+/**
+ * @property string $id
+ */
 class Menu extends Model
 {
     use HasTranslations, HasUlids, LogsActivity, SoftDeletes;

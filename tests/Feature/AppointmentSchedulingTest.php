@@ -23,6 +23,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
 use Mockery;
+use Mockery\MockInterface;
 use Symfony\Component\Mailer\Exception\TransportException;
 use Tests\TestCase;
 
@@ -430,6 +431,7 @@ class AppointmentSchedulingTest extends TestCase
 
     private function loginAdmin(): void
     {
+        /** @var User&MockInterface $user */
         $user = Mockery::mock(User::class)->makePartial();
         $user->forceFill(['id' => '01J00000000000000000000000', 'name' => 'Admin', 'email' => 'admin@example.test']);
         $user->shouldReceive('hasRole')->andReturn(true);

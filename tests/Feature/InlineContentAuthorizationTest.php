@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Livewire\Livewire;
 use Mockery;
+use Mockery\MockInterface;
 use Tests\TestCase;
 
 class InlineContentAuthorizationTest extends TestCase
@@ -124,6 +125,7 @@ class InlineContentAuthorizationTest extends TestCase
 
     private function loginWithPermissions(array $permissions): void
     {
+        /** @var User&MockInterface $user */
         $user = Mockery::mock(User::class)->makePartial();
         $user->forceFill(['id' => str_pad('delegated', 26, '0', STR_PAD_LEFT)]);
         $user->shouldReceive('hasRole')->andReturn(false);

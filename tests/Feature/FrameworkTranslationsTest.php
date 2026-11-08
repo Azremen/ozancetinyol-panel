@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\Facades\Validator;
 use Tests\TestCase;
 
@@ -32,7 +33,7 @@ class FrameworkTranslationsTest extends TestCase
                 sort($turkishMatches[0]);
                 $this->assertSame($englishMatches[0], $turkishMatches[0], $group.'.'.$key);
                 $fullKey = $group.'.'.$key;
-                $this->assertSame($jsonTranslations[$fullKey] ?? $turkish[$key], trans($fullKey, [], 'tr', false));
+                $this->assertSame($jsonTranslations[$fullKey] ?? $turkish[$key], Lang::get($fullKey, [], 'tr', false));
             }
         }
     }
