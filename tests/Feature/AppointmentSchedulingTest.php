@@ -12,6 +12,7 @@ use App\Models\Setting;
 use App\Models\User;
 use App\Services\AppointmentSchedule;
 use Carbon\Carbon;
+use Filament\Actions\Testing\TestAction;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Auth;
@@ -361,6 +362,25 @@ class AppointmentSchedulingTest extends TestCase
         Livewire::test(AppointmentSettings::class)->set('data.days.0.end', '08:00')->call('save')->assertHasErrors();
         $this->assertNotEmpty(app(AppointmentSchedule::class)->slots('2026-11-10'));
         Livewire::test(AppointmentCalendar::class)->set('date', '2026-11-10')->assertSet('date', '2026-11-10')->assertHasNoErrors()->assertSee('09:00');
+    }
+
+    public function test_closed_date_repeater_adds_and_saves_a_holiday(): void
+    {
+        $this->loginAdmin();
+
+        $component = Livewire::test(AppointmentSettings::class)
+            ->callAction(TestAction::make('add')->schemaComponent('closed_dates', 'form'))
+            ->assertHasNoErrors();
+
+        $dates = $component->get('data.closed_dates');
+        $this->assertCount(1, $dates);
+
+        $component->set('data.closed_dates.'.array_key_first($dates).'.date', '2026-11-10')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertSame([['date' => '2026-11-10']], app(AppointmentSchedule::class)->settings()['closed_dates']);
+        $this->assertSame([], app(AppointmentSchedule::class)->slots('2026-11-10'));
     }
 
     public function test_panel_maps_domain_validation_errors_to_form_fields(): void

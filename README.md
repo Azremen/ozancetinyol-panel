@@ -92,6 +92,20 @@ After changing the local URL, run `php artisan config:clear` and
 
 ### Content Security Policy and headers
 
+After dependency installation or upgrades, Composer republishes Filament and
+Livewire assets together. Do not deploy updated `vendor` packages alongside
+old published JavaScript. If the browser reports "The published Livewire assets
+are out of date" or repeater actions fail, run these commands from the panel:
+
+```powershell
+php artisan filament:assets
+php artisan vendor:publish --tag=livewire:assets --force
+php artisan view:clear
+```
+
+Deploy the refreshed public assets too, purge any CDN asset cache, and hard
+refresh the browser. `npm run build` alone does not publish these package assets.
+
 CSP and security headers cover application errors and redirects as well as
 normal pages. Apache supplies anti-framing, MIME-sniffing, Referrer-Policy and
 Permissions-Policy headers for static files too. Frames cannot embed the panel;
