@@ -48,6 +48,9 @@ class CspMiddleware
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
         $response->headers->set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=(), usb=()');
         $response->headers->remove('X-Powered-By');
+        if (! headers_sent()) {
+            header_remove('X-Powered-By');
+        }
         $cacheControl = $response->headers->get('Cache-Control', '');
         $isCachedImage = str_starts_with($request->path(), 'img/')
             && $response->isSuccessful()

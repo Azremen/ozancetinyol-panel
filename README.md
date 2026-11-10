@@ -117,7 +117,11 @@ Static `/storage/...` uploads bypass Laravel middleware. The panel-owned
 conditional/range responses, and errors. Restart any running `artisan serve`
 process after deploying this file; an already-running server still uses the
 framework's old router. Do not start PHP's built-in server without this router.
-It is for development only, not production.
+It also removes PHP's `X-Powered-By` header from static responses. Keep
+`expose_php=Off` in the PHP configuration used by the web server; Laravel
+middleware removes the header from dynamic responses. Restart PHP-FPM/Apache or
+the hosting PHP handler after changing PHP configuration. This server is for
+development only, not production.
 
 Apache deployments must use `public` as the document root, enable `mod_headers`,
 and allow `public/.htaccess` overrides (`AllowOverride All` in the Laragon

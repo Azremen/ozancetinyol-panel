@@ -7,6 +7,10 @@ use Symfony\Component\Mime\MimeTypes;
 
 require_once __DIR__.'/vendor/autoload.php';
 
+if (! headers_sent()) {
+    header_remove('X-Powered-By');
+}
+
 $headers = ['X-Content-Type-Options' => 'nosniff'];
 $request = Request::createFromGlobals();
 $uri = rawurldecode(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?? '');

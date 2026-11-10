@@ -82,6 +82,11 @@ class StaticSecurityHeadersTest extends TestCase
                 $this->assertStringContainsString(' '.$status.' ', $headers[0], $path);
                 $this->assertContains('x-content-type-options: nosniff', $headers, $path);
                 $this->assertCount(1, array_keys($headers, 'x-content-type-options: nosniff'), $path);
+                $this->assertSame(
+                    [],
+                    array_values(array_filter($headers, fn (string $header): bool => str_starts_with($header, 'x-powered-by:'))),
+                    $path,
+                );
 
                 if ($expectedBody !== null) {
                     $this->assertSame($expectedBody, $body, $path);
