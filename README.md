@@ -110,8 +110,44 @@ CSP and security headers cover application errors and redirects as well as
 normal pages. Apache supplies anti-framing, MIME-sniffing, Referrer-Policy and
 Permissions-Policy headers for static files too. Frames cannot embed the panel;
 camera, microphone, geolocation, payment and USB APIs are disabled.
-Laravel's XSRF cookie stays readable for JavaScript CSRF clients, while session
-cookie flags remain controlled by session configuration.
+
+Static `/storage/...` uploads bypass Laravel middleware. The panel-owned
+`server.php` is automatically selected by `php artisan serve` and sends
+`X-Content-Type-Options: nosniff` for static files (including favicon uploads),
+conditional/range responses, and errors. Restart any running `artisan serve`
+process after deploying this file; an already-running server still uses the
+framework's old router. Do not start PHP's built-in server without this router.
+It is for development only, not production.
+
+Apache deployments must use `public` as the document root, enable `mod_headers`,
+and allow `public/.htaccess` overrides (`AllowOverride All` in the Laragon
+virtual host). Its global `Header always set X-Content-Type-Options "nosniff"`
+already covers static storage, redirects and errors. If nginx/Plesk or a CDN
+serves storage directly, Apache and Laravel cannot add headers to those
+responses: configure `add_header X-Content-Type-Options "nosniff" always;`
+in the serving nginx server/location (or the equivalent CDN response rule).
+nginx locations with their own `add_header` directives need this directive too;
+do not assume they inherit it. Preserve the upload script-execution denial and
+restrictive storage CSP when configuring a static-file offload.
+Purge cached responses and verify a real `/storage/settings/favicon-...ico`
+URL plus a missing storage URL using `curl.exe -I` on each serving origin.
+
+The panel's `XSRF-TOKEN` cookie is HttpOnly, including on `/img/600/760` and
+other image responses. Laravel 12 normally hardcodes this cookie as readable
+by JavaScript independently of `session.http_only`. The app-owned
+`VerifyCsrfToken` middleware changes only that flag, preserving Laravel's
+token validation, encryption and other cookie attributes. It replaces
+`ValidateCsrfToken` in the `web` group and `VerifyCsrfToken` in Filament's
+separate middleware stack; a global middleware replacement alone would not
+cover those stacks. Session cookie flags remain controlled by session
+configuration (keep `SESSION_HTTP_ONLY=true`).
+
+Filament/Livewire use the page's CSRF token rather than reading the cookie.
+Custom JavaScript clients (including Axios's automatic XSRF-cookie support)
+must send a token from the page's `csrf-token` meta tag as `X-CSRF-TOKEN`, or
+use a form `_token`; they cannot read the HttpOnly cookie. This hardening does
+not prevent same-origin XSS from submitting requests. Keep the frontend app's
+independent cookie configuration unchanged.
 
 The installed Filament templates use inline scripts/styles, and Alpine uses
 dynamic expression evaluation. The panel therefore retains `unsafe-inline` and
@@ -268,6 +304,7 @@ disposable test database:
 ```powershell
 php artisan test --compact tests/Feature/PanelHtmlMarkupTest.php
 php artisan test --compact --filter=FrameworkTranslationsTest
+php artisan test --compact tests/Unit/StaticSecurityHeadersTest.php
 ```
 
 Use `php artisan test --compact` for the full suite, `npm run build` for asset

@@ -8,6 +8,20 @@ use Tests\TestCase;
 
 class ImageControllerTest extends TestCase
 {
+    public function test_zap_image_endpoint_sets_an_httponly_csrf_cookie(): void
+    {
+        Storage::fake('public');
+        Storage::disk('public')->put(
+            'images/source.png',
+            UploadedFile::fake()->image('source.png', 32, 32)->getContent(),
+        );
+
+        $response = $this->get('/img/600/760?path=images/source.png')->assertOk();
+
+        $response->assertCookie('XSRF-TOKEN');
+        $this->assertTrue($response->getCookie('XSRF-TOKEN', false)->isHttpOnly());
+    }
+
     protected function tearDown(): void
     {
         Storage::disk('public')->deleteDirectory('images');

@@ -3,10 +3,12 @@
 use App\Http\Middleware\BlockIpMiddleware;
 use App\Http\Middleware\CspMiddleware;
 use App\Http\Middleware\TrustProxies;
+use App\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Illuminate\Support\Facades\Route;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -24,6 +26,9 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->replace(Illuminate\Http\Middleware\TrustProxies::class, TrustProxies::class);
+        $middleware->web(replace: [
+            ValidateCsrfToken::class => VerifyCsrfToken::class,
+        ]);
         $middleware->append(BlockIpMiddleware::class);
         $middleware->prepend(CspMiddleware::class);
     })
