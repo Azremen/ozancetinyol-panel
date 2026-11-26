@@ -350,7 +350,30 @@ class AppointmentSchedulingTest extends TestCase
                     $this->assertStringNotContainsString('href="'.config('app.url').'"', $mail->render());
                 }
             }
+
         }
+    }
+
+    public function test_mail_theme_is_inlined_and_customer_email_omits_phone(): void
+    {
+        $mail = new AppointmentNotification([
+            'name' => 'Test Patient', 'phone' => '+905551234567',
+            'date' => '10.11.2026', 'time' => '09:00', 'timezone' => 'Europe/Istanbul',
+        ], 'received', 'customer');
+
+        $html = $mail->render();
+        $document = new \DOMDocument;
+        $this->assertTrue($document->loadHTML($html, LIBXML_NOERROR | LIBXML_NOWARNING));
+        $xpath = new \DOMXPath($document);
+        $this->assertStringContainsString('background-color: #f3f7f5', $xpath->query('//td[@class="panel-content"]')->item(0)->getAttribute('style'));
+        $this->assertStringContainsString('border-left: 4px solid #d7aa72', $xpath->query('//table[@class="panel"]')->item(0)->getAttribute('style'));
+        $this->assertStringContainsString('color: #805300', $xpath->query('//p[contains(@class, "appointment-status--received")]')->item(0)->getAttribute('style'));
+        $this->assertStringNotContainsString('+905551234567', $html);
+
+        $confirmed = new AppointmentNotification($mail->details, 'confirmed', 'customer');
+        $this->assertTrue($document->loadHTML($confirmed->render(), LIBXML_NOERROR | LIBXML_NOWARNING));
+        $xpath = new \DOMXPath($document);
+        $this->assertStringContainsString('color: #285c59', $xpath->query('//p[contains(@class, "appointment-status--confirmed")]')->item(0)->getAttribute('style'));
     }
 
     public function test_schedule_settings_and_calendar_are_renderable_and_validated(): void

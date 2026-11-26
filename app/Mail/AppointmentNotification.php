@@ -8,6 +8,8 @@ use Illuminate\Mail\Mailables\Envelope;
 
 class AppointmentNotification extends Mailable
 {
+    public $theme = 'appointment-theme';
+
     public function __construct(
         public array $details,
         public string $event,
